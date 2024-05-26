@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewData["Title"] = "fetchTest";
+}
+
+<h1>用fetch()從前端呼叫API( • ̀ω•́ )</h1>
+<button class="btn btn-primary" id="btnOk">OK</button>
+<button class="btn btn-warning" id="btnStop">Stop</button>
+<img src="~/images/ghost.gif" style="display:none;" id="imgLoding"/>
+<div id="divResult">
+
+</div>
+
+
+@section Styles {
+    <style>
+
+    </style>
+}
+@section Scripts{
+    <script>
+        const btnOk = document.getElementById("btnOk");
+        const btnStop = document.getElementById("btnStop");
+        const divResult = document.getElementById("divResult");
+        const imgLoding = document.getElementById("imgLoding");
+        let abortController;
+
+        btnStop.addEventListener("click", ()=>{
+            if (abortController) 
+                abortController.abort();
+        })
+
+        btnOk.addEventListener("click", async() => {
+            try {
+                imgLoding.style.display = "block";
+                btnOk.setAttribute("disabled", "disabled");
+
+                abortController = new AbortController();
+                const signal = abortController.signal;
+                setTimeout(() => {
+                    abortController.abort();
+                }, 5000);
+
+                const response = await fetch("@Url.Content("~/api/returnContent")",{signal});
+                if (!response.ok)
+                    throw new Error(`${response.status}`);
+
+                const datas = await response.text();
+                divResult.innerHTML = `<h2>${datas}</h2>`;
+
+            } catch (error) {
+                divResult.innerHTML = `<h2>${error.message}</h2>`;
+            }finally {
+                imgLoding.style.display = "none";
+                btnOk.removeAttribute("disabled");
+            }
+            
+        })
+
+            
+            
+
+            
+    </script>
+}

@@ -1,0 +1,79 @@
+﻿
+@{
+    ViewData["Title"] = "selectCity";
+}
+
+<h1>下拉選單: 城市>鄉鎮區>道路</h1>
+<select id="selectCity">
+
+</select>
+<select id="selectDist">
+
+</select>
+<select id="selectRoad">
+</select>
+<button class="btn btn-primary" id="btnOK">OK</button>
+<br />
+<span id="spFullAddress">你的地址:</span>
+
+@section Styles {
+    <style>
+
+    </style>
+}
+@section Scripts{
+    <script>
+        const selectCity = document.getElementById("selectCity");
+        const selectDist = document.getElementById("selectDist");
+        const selectRoad = document.getElementById("selectRoad");
+        const spFullAddress = document.getElementById("spFullAddress");
+        const btnOK = document.getElementById("btnOK");
+
+        //依據所選城市, 載入鄉鎮區下拉選單
+        const loadDist = async () => {
+            console.log(selectCity.value);//確認有抓到所選城市
+            const url = `@Url.Content("~/api/returnDist")?city=${selectCity.value}`;//把所選城市以query string的方式傳給API
+                                                                                    //query string的key就是參數
+            const response = await fetch(url);
+            const datas = await response.json();
+            const dists = datas.map(d => `<option value="${d}">${d}</option>`);
+            selectDist.innerHTML = dists.join("");
+
+        }
+        //依據所選鄉鎮區, 載入道路下拉選單
+        const loadRoad = async () => {
+            console.log(selectDist.value);//確認有抓到所選鄉鎮區
+            const url = `@Url.Content("~/api/returnRoad")?dist=${selectDist.value}`;//把所選鄉鎮區以query string的方式傳給API
+                                                                                    //query string的key就是參數
+            const response = await fetch(url);
+            const datas = await response.json();
+            const roads = datas.map(d => `<option value="${d}">${d}</option>`);
+            selectRoad.innerHTML = roads.join("");
+        }
+        //秀出完整地址
+        const showFullAddress = ()=>{
+            spFullAddress.innerHTML = "";
+            spFullAddress.innerHTML = `${selectCity.value}${selectDist.value}${selectRoad.value}`
+        }
+
+        //頁面初始
+        (async() => {
+            //載入城市下拉選單
+            const response = await fetch("@Url.Content("~/api/returnCity")");
+            const datas = await response.json();
+            console.log(datas);
+            const cities = datas.map(d => `<option value="${d}">${d}</option>`);
+            selectCity.innerHTML = cities.join("");
+
+            await loadDist();//要等鄉鎮區有資料
+            loadRoad();//=>才載入道路資料
+        })();
+
+        //所選城市變動
+        selectCity.addEventListener("change", loadDist);
+        //所選鄉鎮區變動
+        selectDist.addEventListener("change", loadRoad);
+        //按下ok紐
+        btnOK.addEventListener("click", showFullAddress);
+    </script>
+}

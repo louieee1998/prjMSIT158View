@@ -1,0 +1,126 @@
+﻿
+@{
+    ViewData["Title"] = "registerMember";
+}
+
+<h1>功課: 會員註冊頁面</h1>
+
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col-6">
+        <form id="formMember"> 
+            <div class="mb-3">
+                <label for="inputName" class="form-label">姓名</label>
+                <input type="text" class="form-control" id="inputName" name="Name">
+                <span id="spIsUsed"></span>
+            </div>
+            <div class="mb-3">
+                <label for="inputEmail" class="form-label">電子郵件</label>
+                <input type="email" class="form-control" id="inputEmail" name="Email">
+            </div>
+            <div class="mb-3">
+                <label for="inputAge" class="form-label">年紀</label>
+                <input type="number" class="form-control" id="inputAge" name="Age">
+            </div>
+            <div class="mb-3">
+                <label for="inputPwd" class="form-label">密碼</label>
+                <input type="password" class="form-control" id="inputPwd" name="Password">
+            </div>
+            <div class="mb-3">
+                <label for="inputPwdAgain" class="form-label">密碼確認</label>
+                <input type="password" class="form-control" id="inputPwdAgain">
+                <span id="spIsDifferent"></span>
+            </div>
+            <div class="mb-3">
+                <label for="fileAvatar" class="form-label">照片</label>
+                <input class="form-control" type="file" id="fileAvatar" name="avatar">
+            </div>
+            <button type="submit" class="btn btn-primary" id="btnSubmit">送出</button>
+            <div class="alert alert-info mt-3" id="divMessage">
+            @* 顯示用戶註冊訊息 *@
+            </div>
+        </form>
+    </div>
+    <div class="col-3"></div>
+</div>
+
+
+
+@section Styles {
+    <style>
+        .registerSuccess {
+           color:green;
+           font-weight:700;
+        }
+
+        .registerFail {
+            color: red;
+            font-weight: 700;
+        }
+    </style>
+}
+@section Scripts{
+    <script>
+        const inputName = document.getElementById("inputName");
+        const inputEmail = document.getElementById("inputEmail");
+        const inputAge = document.getElementById("inputAge");
+        const divMessage = document.getElementById("divMessage");
+        const spIsUsed = document.getElementById("spIsUsed");
+        const btnSubmit = document.getElementById("btnSubmit");
+        const formMember = document.getElementById("formMember");
+        const fileAvatar = document.getElementById("fileAvatar");
+        const inputPwd = document.getElementById("inputPwd");
+        const inputPwdAgain = document.getElementById("inputPwdAgain");
+        const spIsDifferent = document.getElementById("spIsDifferent");
+
+        inputPwdAgain.addEventListener("blur", () => {
+            if (inputPwdAgain.value != inputPwd.value) {
+                spIsDifferent.innerHTML = "再次輸入的密碼不同!!"
+                spIsDifferent.className = "registerFail";
+            }
+            else {
+                spIsDifferent.innerHTML = "密碼確認成功"
+                spIsDifferent.className = "registerSuccess";
+            }
+        })
+
+        inputName.addEventListener("blur", async() => {
+            if (inputName.value) {
+                // console.log(inputName.value);
+                const response = await fetch(`@Url.Content("~/api/checkAccount")?name=${inputName.value}`);
+                const datas = await response.text();
+                // console.log(datas);
+                if (datas == "True") {
+                    spIsUsed.innerHTML = "該名稱已被使用!!";
+                    spIsUsed.className = "registerFail";
+                }
+                else if (datas == "False") {
+                    spIsUsed.innerHTML = "該名稱可使用";
+                    spIsUsed.className = "registerSuccess";
+                }
+            }
+            else {
+                spIsUsed.innerHTML = "請輸入名稱!!";
+                spIsUsed.className = "registerFail";
+            }
+        })
+
+        btnSubmit.addEventListener("click", async (evt) => {
+            evt.preventDefault();
+            const formData = new FormData(formMember);
+
+            const url = "@Url.Content("~/api/showMemberInfo")";
+            
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.text();
+            console.log(data);
+            divMessage.innerHTML = data;
+        })
+
+
+    </script>
+}
