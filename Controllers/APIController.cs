@@ -95,13 +95,23 @@ namespace prjMSIT158View.Controllers
             string info = $"{avatar.FileName} - {avatar.Length} - {avatar.ContentType}";
             return Content($"Hello {member.Name}，{member.Age} 歲了，電子郵件是 {member.Email}。上傳照片資訊: {info}", "text/plain", System.Text.Encoding.UTF8);
         }
-
+        public IActionResult returnCategories()
+        {
+            // 從資料庫中獲取所有Category的ID和名稱
+            var categories = _context.Categories
+                .Select(c => new {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName
+                })
+                .ToList();
+            return Json(categories);
+        }
         public IActionResult searchSpots([FromBody]SearchDTO search)
         {
             //根據分類編號搜尋景點資料
             var spots = search.categoryId == 0 ? _context.SpotImagesSpots : _context.SpotImagesSpots.Where(s => s.CategoryId == search.categoryId);
 
-            //根據關鍵字搜尋景點資料(title、desc)
+            //根據關鍵字搜尋景點資料
             if (!string.IsNullOrEmpty(search.keyword))
             {
                 spots = spots.Where(s => s.SpotTitle.Contains(search.keyword) || s.SpotDescription.Contains(search.keyword));
@@ -116,7 +126,7 @@ namespace prjMSIT158View.Controllers
             //計算總共有幾頁
             int totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
             //分頁
-            spots = spots.Skip((page - 1) * pageSize).Take(pageSize);
+            spots = spots.Skip((page - 1) * pageSize).Take(pageSize);//Skip略過幾筆資料後Take取幾筆
 
             //包裝要傳給client端的資料
             SpotsPagingDTO spotsPaging = new SpotsPagingDTO();
